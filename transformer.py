@@ -77,9 +77,27 @@ class FasterMultiHeadAttention:
         output = torch.matmul(output, self.w_o)
 
         return output
-       
-## TODO: add layernorm   
-       
+
+
+# ~Layernorm~, 
+class LayerNorm:
+    def __init__(self, d_model, eps):
+        self.d_model = d_model
+        self.eps = eps
+        self.gamma = torch.ones((d_model, ), requires_grad=True)
+        self.beta = torch.zeros((d_model,), requires_grad=True)
+        
+    def forward(self, x):
+        mean = torch.mean(x, dim=-1, keepdim=True)
+        var = ((x - mean) ** 2).mean(dim=-1, keepdim=True)
+        norm = (x - mean)/ torch.sqrt(var+self.eps)
+        norm = norm*self.gamma + self.beta
+        return norm
+
+                      
+# TODO: PE, FFN  
+
+class        
     
 if __name__ == '__main__':
     bs = 2
@@ -103,6 +121,16 @@ if __name__ == '__main__':
     o2 = m2.forward(Q, K, V, mask)
     # print(o2.shape)
     
-    print(o1-o2)
+    print((o1==o2).all())
+    
+    ln = LayerNorm(d_model, 1e-6)
+    from torch.nn import LayerNorm as TorchLayerNorm
+    tln = TorchLayerNorm(d_model, eps=1e-6)
+    out = ln.forward(o1)
+    tout = tln(o1)
+    print((out-tout).max())
+    
+    
+    
     
     
